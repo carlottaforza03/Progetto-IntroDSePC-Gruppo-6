@@ -6,8 +6,11 @@
 **Federica La Braca**: matricola 1216267, federica.labraca@studio.unibo.it 
 
 ## Dataset
-**Nome dataset:**  \
-**Obiettivo:**
+**Nome dataset:** Online Shoppers Purchasing Intention Dataset \
+**Obiettivo:** prevedere se un visitatore completerà un acquisto online.
+
+## Descrizione del progetto 
+Questo progetto analizza il dataset Online Shoppers Purchasing Intention con l'obiettivo di comprendere i fattori che influenzano la probabilità di acquisto online e di costruire modelli di Machine Learning in grado di prevedere il comportamento degli utenti.
 
 ## Struttura del repository
 
@@ -20,4 +23,3 @@
 ## Modelli utilizzati
 
 ## Istruzioni per l'esecuzione
-
