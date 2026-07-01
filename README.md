@@ -7,11 +7,11 @@
 
 ## Descrizione del progetto 
 Il presente progetto è stato realizzato come prova finale del corso di Introduzione al Pensiero Computazionale e alla Data Science (a.a. 2025/2026).
-L'obiettivo consiste nello sviluppo di un progetto completo di Data Science, comprendente tutte le principali fasi del processo analitico: comprensione del dataset, analisi esplorativa dei dati, preparazione del dataset, addestramento di modelli di Machine Learning, valutazione dei risultati e interpretazione critica delle prestazioni ottenute. \
-L'analisi è stata svolta utilizzando Python e le principali librerie per la Data Science, seguendo la struttura e i requisiti previsti dal progetto di fine corso.
+L'obiettivo consiste nello sviluppo di un progetto completo di Data Science, comprendente tutte le principali fasi del processo: comprensione del dataset, analisi esplorativa dei dati, preparazione del dataset, addestramento di modelli di Machine Learning, valutazione dei risultati e interpretazione critica delle prestazioni ottenute. \
+L'analisi è stata svolta utilizzando Python e le principali librerie, seguendo la struttura e i requisiti previsti dalle specifiche del progetto di fine corso.
 
 ## Dataset
-**Nome dataset:** Online Shoppers Purchasing Intention Dataset \
+**Nome dataset:** *Online Shoppers Purchasing Intention Dataset* \
 Il dataset raccoglie informazioni relative alle sessioni di navigazione degli utenti su una piattaforma di e-commerce e descrive il comportamento dei visitatori attraverso variabili riguardanti:
 - caratteristiche della sessione di navigazione;
 - tempo trascorso nelle diverse tipologie di pagine;
