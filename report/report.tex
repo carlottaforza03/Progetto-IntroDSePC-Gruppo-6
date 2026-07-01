@@ -1,0 +1,295 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{natbib}
+
+
+\geometry{margin=2.5cm}
+
+% --- Configurazione dei collegamenti ipertestuali ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Report Data Science - Gruppo 6},
+    pdfpagemode=FullScreen,
+}
+
+% --- Configurazione del Titolo ---
+\title{\textbf{Analisi predittiva del comportamento d'acquisto online}}
+\author{
+    \textbf{Gruppo 6} \\
+    Gaia Bellomo ( Matricola 1226500) \\
+    Carlotta Forza (Matricola 1230704) \\
+    Federica La Braca (Matricola 1216267) \\
+    \makeatletter
+    \small Corso di Introduzione alla Data Science e al Pensiero Computazionale \\
+    \small Università di Bologna
+}
+\date{Anno Accademico 2025/2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Il presente report illustra lo sviluppo del progetto volto ad esplorare e prevedere l'intenzione d'acquisto degli utenti su una piattaforma e-commerce utilizzando le informazioni contenute nel dataset \texttt{Online\_Shoppers.csv} \citep{online_shoppers_dataset}. L'analisi integra tecniche di esplorazione statistica e modelli di machine learning per comprendere quali fattori giochino un ruolo fondamentale nella conversione degli utenti online in possibili acquirenti. Il presente report è strutturato come segue: dopo un'introduzione generale e l'inquadramento del contesto con la descrizione e comprensione del dataset (\ref{sec: Analisi}, \ref{sec: Descrizione}), la Sezione \ref{sec: Grafici} esamina l'analisi esplorativa e la visualizzazione dei dati. La Sezione \ref{sec: Modelli} è dedicata alla modellazione e al preprocessing, mentre nella Sezione \ref{sec: Valutazione} vengono discussi e valutati i risultati principali. Infine, la Sezione \ref{sec: Conclusioni} trae le conclusioni del progetto.
+Il notebook con tutte le analisi, il dataset, le figure e il presente report sono disponibili nel repository GitHub del progetto: \url{https://github.com/carlottaforza03/Progetto-IntroDSePC-Gruppo-6} 
+
+
+\end{abstract}
+
+\tableofcontents
+\clearpage
+
+\section{Analisi e comprensione del Dataset}
+\label{sec: Analisi}
+L'obiettivo fondamentale di questa ricerca consiste nello studio analitico delle sessioni di navigazione web per prevedere l'intenzione d'acquisto dei visitatori (rappresentata dalla variabile target \texttt{Revenue}).
+
+Il dataset oggetto dello studio è composto da \textbf{12.330 osservazioni} ripartite su \textbf{18 colonne}.Attraverso una prima analisi è stata verificata l'assenza di valori mancanti (\texttt{NaN}) su tutte le variabili, garantendo l'integrità iniziale della base dati.
+
+Per l'analisi della propensione d'acquisto, il dataset prende in esame le seguenti variabili:
+
+\begin{itemize}
+    \item \textbf{Metriche di navigazione e durata:} \textit{Administrative} (pagine amministrative), \textit{Informational} (pagine informative) e \textit{ProductRelated} (pagine di prodotti). Ciascuna è associata alla rispettiva variabile temporale di permanenza (\textit{Administrative\_Duration}, \textit{Informational\_Duration}, \textit{ProductRelated\_Duration}).
+    
+    \item \textbf{Indicatori di qualità della sessione:} \textit{BounceRates} (\% di abbandono alla prima pagina), \textit{ExitRates} (\% di uscite totali dalla pagina) e \textit{PageValues} (valore economico stimato della pagina web).
+    
+    \item \textbf{Fattori temporali e di contesto:} \textit{Month} (mese dell'anno) e \textit{SpecialDay} (prossimità a festività o eventi speciali, espressa in una scala da $0.0$ a $1.0$).
+    
+    \item \textbf{Profilazione utente e di sistema:} \textit{VisitorType} (tipologia di visitatore: nuovo, di ritorno o altro), \textit{Region} (macro-regione geografica di provenienza), \textit{OperatingSystems} (sistema operativo), \textit{Browser} (browser utilizzato) e \textit{TrafficType} (sorgente/canale di traffico).
+    
+    \item \textbf{Target:} \textit{Revenue} (variabile logica \texttt{True}/\texttt{False} che indica se la sessione si è conclusa con un acquisto).
+\end{itemize}
+
+
+
+\section{Descrizione e comprensione del Dataset}
+\label{sec: Descrizione}
+
+\subsection{Domande di ricerca}
+\begin{enumerate}
+    \item \textbf{Canale di acquisizione più redditizio:} Dall'analisi aggregata della variabile \texttt{TrafficType}, il canale contrassegnato con l'identificativo \texttt{16} mostra la performance migliore in assoluto, registrando un tasso di conversione pari al 33.33\%.
+    \item \textbf{Sbilanciamento del target:} Si evidenzia un forte sbilanciamento delle classi: l'84.53\% delle sessioni complessive si conclude senza un acquisto (\texttt{False}), mentre solo il 15.47\% genera una transazione andata a buon fine (\texttt{True}).
+    \item \textbf{Impatto dei giorni festivi e feriali:}Le sessioni effettuate nel weekend registrano un tasso di conversione leggermente superiore (17.40\%) rispetto ai normali giorni lavorativi (14.89\%).
+    \item \textbf{Presenza di anomalie temporali:}La durata media sulle pagine prodotto è di circa 1194.75 secondi; tuttavia, si registra un picco massimo anomalo di 63.973.52 secondi, suggerendo la chiara presenza di outlier da trattare.
+    \item \textbf{Stagionalità degli accessi:}Maggio risulta il mese più attivo in assoluto con 3.364 sessioni, seguito da novembre con 2.998.
+    \item \textbf{Usabilità e problemi tecnici:} Il tasso medio globale di rimbalzo è molto contenuto (2.22\%), escludendo gravi anomalie di caricamento e confermando la buona usabilità del sito.
+    \item \textbf{Ridondanza informativa:}\texttt{BounceRates} ed \texttt{ExitRates} mostrano una correlazione lineare estremamente forte ($r = 0.91$), indicando un rischio di ridondanza da monitorare nella selezione delle feature.
+    \item \textbf{Incidenza dei periodi speciali:}Il dataset mappa 1.251 sessioni caratterizzate da una prossimità temporale a festività e ricorrenze speciali (\texttt{SpecialDay} $> 0$).
+\end{enumerate}
+
+\subsection{Statistiche}
+
+\begin{enumerate}
+    \item \textbf{Frequenza degli acquisti (Target \textit{Revenue}):} Il dataset mostra un forte sbilanciamento delle classi. Solo il $15.47\%$ delle sessioni ($1908$ transazioni) si conclude con un acquisto, a fronte dell' $84.53\%$ ($10422$ sessioni) terminato senza alcuna conversione.
+    
+    \item \textbf{Distribuzione delle pagine visitate (\textit{ProductRelated}):} In media gli utenti visitano $31.73$ pagine di prodotti per sessione. Tuttavia, la mediana si attesta a sole $18.00$ pagine e si registra un valore massimo di $705.00$, evidenziando una distribuzione fortemente asimmetrica.
+    
+    \item \textbf{Incidenza del valore economico (\textit{PageValues}):} Il $77.9\%$ delle sessioni ($9600$ casi) presenta un valore stimato pari a zero. Il tasso medio di acquisto sale drasticamente dal $3.85\%$ per le sessioni con $\textit{PageValues} = 0$ al $56.34\%$ per quelle con $\textit{PageValues} > 0$.
+    
+    \item \textbf{Relazione tra tasso di rimbalzo e di uscita:} Le variabili \textit{BounceRates} ed \textit{ExitRates} mostrano una fortissima correlazione lineare positiva ($0.913$), indicando comportamenti sovrapponibili. Entrambe presentano una correlazione negativa con la conversione (rispettivamente $-0.151$ e $-0.207$).
+    
+    \item \textbf{Associazione delle feature al Target:} L'analisi della matrice di correlazione mostra che \textit{PageValues} è la feature più legata all'acquisto ($0.493$). Seguono con valori più contenuti \textit{ProductRelated} ($0.159$) e \textit{ProductRelated\_Duration} ($0.152$), mentre le variabili geografiche e di sistema sono prossime allo zero.
+\end{enumerate}
+
+
+\begin{table}[htbp]
+\centering
+\caption{Tasso di conversione in base al valore stimato della pagina (\texttt{PageValues}).}
+\label{tab:page_values}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Condizione} & \textbf{Sessioni (\%)} & \textbf{Tasso di Conversione (\texttt{Revenue})} \\
+\midrule
+\texttt{PageValues} = 0 & 77.9\% & 3.85\% \\
+\texttt{PageValues} > 0 & 22.1\% & 56.34\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Coefficienti di correlazione lineare di Pearson rispetto a \texttt{Revenue}.}
+\label{tab:correlazioni}
+\begin{tabular}{lc}
+\toprule
+\textbf{Variabile quantitativa} & \textbf{Indice di Correlazione ($r$)} \\
+\midrule
+\texttt{PageValues} & 0.4925 \\
+\texttt{ProductRelated} & 0.1585 \\
+\texttt{ProductRelated\_Duration} & 0.1523 \\
+\texttt{Administrative} & 0.1389 \\
+\texttt{SpecialDay} & -0.0823 \\
+\texttt{BounceRates} & -0.1506 \\
+\texttt{ExitRates} & -0.2070 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Riflessioni sui dati}
+
+\begin{enumerate}
+    \item \textbf{Tipologia di utente:} I \textit{New Visitors} mostrano un tasso di conversione del $24.91\%$, nettamente superiore rispetto al $13.93\%$ dei \textit{Returning Visitors}, nonostante questi ultimi generino il volume di traffico principale ($10551$ sessioni contro $1694$).
+    
+    \item \textbf{Impatto degli outlier:} Si riscontra una forte asimmetria nelle metriche temporali. A fronte di una media di $1194.75$ secondi su pagine di prodotti (\textit{ProductRelated\_Duration}), si registrano picchi anomali fino a $63973.52$ secondi, richiedendo una gestione mirata in fase di preprocessing.
+    
+    \item \textbf{Stagionalità per mese:} Il mese di maggio registra il maggior volume di traffico ($3364$ sessioni), ma il picco di conversioni si concentra a novembre ($25.35\%$), trainato da eventi commerciali globali come il \textit{Black Friday}.
+    
+    \item \textbf{Distribuzione per regione:} Il traffico è polarizzato (es. Regione 1 con $4780$ sessioni vs Regione 3 con $2403$), ma il tasso di conversione rimane omogeneo tra tutte le aree (dal $12.90\%$ al $16.83\%$). La correlazione prossima allo zero ($-0.011$) conferma l'irrilevanza predittiva della provenienza geografica.
+\end{enumerate}
+
+\section{Analisi esplorativa e visualizzazione dei dati}
+\label{sec: Grafici}
+
+La fase di analisi esplorativa dei dati è stata finalizzata a comprendere i fattori che influenzano il comportamento di acquisto degli utenti sulla piattaforma e-commerce, ponendo particolare attenzione sulla relazione tra le abitudini di navigazione e la variabile target definita dall’acquisto concluso. Attraverso l’impiego di una matrice di correlazione, è stato possibile mappare i legami lineari tra le diverse variabili quantitative, fornendo una rappresentazione grafica immediata della forza associativa tra le feature e l'esito della sessione (Figura \ref{fig:placeholder}).
+
+\begin{figure}[h!]
+        \centering
+        \includegraphics[width=0.7\linewidth]{images/heatmap.png}
+        \caption{\textit{Matrice di correlazione delle variabili quantitative.}}
+        \label{fig:placeholder}
+    \end{figure}
+      
+Dai risultati emersi, il parametro \textit{PageValues} si conferma il principale motore predittivo dell'intento d'acquisto, presentando la correlazione più elevata con la conversione. Questo dato suggerisce che il valore economico attribuito alle pagine visitate costituisca un indicatore molto più significativo del semplice tempo trascorso sul sito per la navigazione.
+
+In merito al fenomeno di abbandono, l'analisi ha evidenziato un problema tecnico legato alla forte collinearità tra il tasso di rimbalzo e il tasso di uscita. L’indice di correlazione registrato tra queste due metriche ha un valore di 0.91, suggerendo una sovrapposizione informativa. Dal punto di vista della ricerca,la coesistenza di queste variabili ridondanti potrebbe indurre distorsioni o un eccessivo adattamento del modello ai dati di addestramento. Si è riscontrato, inoltre, che le sessioni che si concludono con una transazione presentano valori estremamente ridotti in entrambe le metriche di abbandono, confermando che mantenere l'utente coinvolto senza interruzioni è un requisito fondamentale per la conversione. 
+
+Un aspetto rilevante emerso durante l'esplorazione riguarda la distribuzione temporale e l'impatto degli outlier. L'analisi descrittiva delle durate di navigazione, in particolare su \textit{ProductRelated\_Duration}, ha rivelato la presenza di valori anomali estremi, con sessioni che raggiungono durate talmente elevate da risultare incompatibili con il normale comportamento di un acquirente (Figura \ref{fig:bounce rates.png}).
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/bounce rates.png}
+    \caption{\textit{Correlazione tra tassi di rimbalzo ed uscita nel processo d'acquisto.}}
+    \label{fig:bounce rates.png}
+\end{figure}
+
+Questa asimmetria positiva, che caratterizza sia gli utenti che convertono sia quelli che abbandonano il sito, indica che il tempo trascorso sulla piattaforma non segue una relazione lineare con l'acquisto, diventando spesso un segnale di inattività o di navigazione non finalizzata. 
+Tali anomalie suggeriscono la necessità di un trattamento preventivo dei dati, come la trasformazione logaritmica o l'esclusione statistica dei picchi di valore, per evitare che la varianza estrema comprometta la stabilità dei modelli predittivi.
+
+Infine, la segmentazione dell'utenza per tipologia ha fornito spunti di riflessione strategica significativi (Figura  \ref{fig:tasso di conversione per tipo di visitatore.png})
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/tasso di conversione per tipo di visitatore.png}
+    \caption{\textit{Confronto tra tassi di conversione per tipologia di utente (nuovi vs visitatori abituali).}}
+    \label{fig:tasso di conversione per tipo di visitatore.png}
+\end{figure}
+Sebbene i visitatori abituali generino il maggior volume di traffico, il tasso di conversione risulta nettamente superiore tra i nuovi utenti. Questa divisione suggerisce che la fidelizzazione non si traduce automaticamente in una maggiore propensione alla spesa immediata,ma piuttosto in una modalità di utilizzo della piattaforma di tipo esplorativo. Il nuovo utente, al contrario, arriva sulla piattaforma con un intento d'acquisto più focalizzato. 
+Questa distinzione, unita alla forte stagionalità riscontrata nel mese di novembre — probabilmente legata a eventi promozionali di portata globale — delinea un profilo di comportamento dell'utente fortemente influenzato sia da leve esterne di mercato che da bisogni immediati, variabili che dovranno essere adeguatamente ponderate nella costruzione di qualsiasi algoritmo di previsione dell'intenzione di acquisto.
+
+
+\section{Modellazione e Preprocessing}
+\label{sec: Modelli}
+L'obiettivo della fase di modellazione è la previsione della variabile target binaria \texttt{Revenue}, che indica se una sessione di navigazione si conclude con un acquisto (\texttt{Revenue}=1) oppure senza una conversione (\texttt{Revenue}=0).
+
+Prima dell'addestramento dei modelli è stato effettuato un preprocessing dei dati. Le variabili booleane sono state convertite in valori numerici, mentre le variabili categoriche (\texttt{Month} e \texttt{VisitorType}) sono state codificate mediante \textit{One-Hot Encoding}, eliminando la prima categoria per evitare problemi di multicollinearità. Successivamente il dataset è stato suddiviso in un \textit{Training Set} (80\%) e in un \textit{Test Set} (20\%) mediante campionamento, così da preservare la distribuzione originaria della variabile target.
+
+Le variabili numeriche sono state quindi standardizzate tramite \textit{Z-score normalization}, operazione necessaria per gli algoritmi sensibili alla scala delle feature, come Regressione Logistica, k-Nearest Neighbors e Support Vector Machine. La trasformazione applicata è descritta dalla seguente relazione:
+
+\begin{equation}
+z=\frac{x-\mu}{\sigma}
+\end{equation}
+
+dove $\mu$ e $\sigma$ rappresentano rispettivamente la media e la deviazione standard calcolate sul training set.
+
+Per il problema di classificazione sono stati considerati quattro algoritmi supervisionati: Regressione Logistica, Random Forest, k-Nearest Neighbors (k-NN) e Support Vector Machine (SVM). Gli algoritmi sono stati addestrati utilizzando i seguenti parametri: solver \texttt{saga} e 1000 iterazioni per la Regressione Logistica, 200 alberi decisionali con \texttt{class\_weight='balanced'} per la Random Forest, valore ottimale $k=7$ individuato tramite 5-fold Cross Validation per il classificatore k-NN e kernel lineare con parametro di regolarizzazione $C=1$ per la SVM.
+
+\section{Valutazione e Interpretazione dei Risultati}
+\label{sec: Valutazione}
+
+Le prestazioni dei modelli sono state valutate sul \textit{Test Set} mediante Accuracy, Precision, Recall e F1-score. L'Accuracy, pur fornendo una misura sintetica delle prestazioni complessive, non basta da sola a descrivere il comportamento dei classificatori su un dataset sbilanciato come questo, dove le sessioni senza acquisto sono nettamente predominanti. Per questo si è data particolare importanza alla Recall della classe positiva (\texttt{Revenue}=1), che indica quanto bene un modello riesce a individuare le sessioni concluse con una conversione: in questo contesto un \textbf{falso negativo} (un acquirente non riconosciuto come tale) rappresenta il \textbf{tipo di errore} più costoso, ben più di un falso positivo.
+
+I risultati ottenuti sono riportati nella Tabella~\ref{tab:performance_modelli}.
+
+\begin{table}[H]
+\centering
+\caption{Confronto delle prestazioni dei modelli sul Test Set.}
+\label{tab:performance_modelli}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Modello} & \textbf{Soglia} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-score} \\
+\midrule
+Regr. Logistica & 0.5 & 0.8783 & 0.72 & 0.35 & 0.47 \\
+Regr. Logistica & 0.7 & 0.8735 & 0.81 & 0.24 & 0.37 \\
+Random Forest & - & \textbf{0.8890} & \textbf{0.70} & \textbf{0.51} & \textbf{0.59} \\
+$k$-NN ($k=7$) & - & 0.8715 & 0.68 & 0.33 & 0.44 \\
+SVM (lineare) & - & 0.8815 & 0.73 & 0.37 & 0.49 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Tutti i modelli superano l'87\% di Accuracy, segno di una buona capacità di classificazione complessiva. Dato lo sbilanciamento del dataset, però, il confronto più informativo resta quello tra Recall e F1-score della classe positiva.
+
+Il confronto tra i quattro modelli evidenzia profili molto diversi tra loro in termini di
+punti di forza, limiti, interpretabilità e costo computazionale (Tabella~\ref{tab:tempi}):
+
+\begin{table}[H]
+\centering
+\caption{Tempo di addestramento dei modelli sul training set.}
+\label{tab:tempi}
+\begin{tabular}{lc}
+\toprule
+\textbf{Modello} & \textbf{Tempo di addestramento (s)} \\
+\midrule
+Regr. Logistica & $\sim$0.04 \\
+Random Forest & $\sim$3 \\
+$k$-NN ($k=7$) & $\sim$0.06 \\
+SVM (lineare) & $\sim$15 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{itemize}
+    \item \textbf{Random Forest}: il modello più equilibrato, con la Recall e l'F1-score
+    più alti e il numero più basso di falsi negativi, il suo principale
+    \textbf{punto di forza}. Di contro, ha il \textbf{costo computazionale} più alto tra i
+    modelli non-kernel ($\sim$3s) e un'\textbf{interpretabilità} minore rispetto ai modelli
+    lineari, offrendo solo un ranking di importanza delle feature invece di coefficienti
+    diretti. Questo diventa quindi un \textbf{limite} da tenere presente quando serve spiegare le predizioni.
+    \item \textbf{Regressione Logistica}: addestramento quasi istantaneo ($\sim$0.04s) e
+    massima \textbf{interpretabilità} grazie ai coefficienti diretti, che permettono di
+    leggere segno e peso di ogni variabile. Il suo \textbf{limite} principale è un numero
+    di falsi negativi più alto rispetto alla Random Forest.
+    \item \textbf{SVM (lineare)}: prestazioni comparabili alla Regressione Logistica, ma
+    con il \textbf{costo computazionale} più elevato in assoluto ($\sim$15s), non
+    giustificato da un reale vantaggio predittivo.
+    \item \textbf{$k$-NN ($k=7$)}: addestramento rapido ($\sim$0.06s), ma il meno efficace
+    nel riconoscere la classe positiva e privo di \textbf{interpretabilità} diretta, poiché
+    le predizioni dipendono unicamente dalla vicinanza tra osservazioni nello spazio delle
+    feature.
+\end{itemize}
+
+Per la Regressione Logistica abbiamo analizzato anche l'effetto della \textbf{soglia
+decisionale}: passando da 0.5 a 0.7 la Precision migliora ma la Recall cala, mostrando
+bene il compromesso tra ridurre i falsi positivi e catturare il maggior numero possibile
+di conversioni.
+
+L'analisi dei \textbf{coefficienti} della Regressione Logistica conferma
+\texttt{PageValues} come principale indicatore della probabilità di acquisto, con un peso
+nettamente superiore a qualunque altra variabile. Ciò conferma quanto detto
+sopra sull'interpretabilità diretta di questo modello.
+
+\section{Conclusioni}
+\label{sec: Conclusioni}
+Lo studio ha analizzato in modo sistematico il comportamento degli utenti su una piattaforma e-commerce, seguendo l'intero percorso dei dati. Nella prima fase, abbiamo ripulito le informazioni per assicurarci che fossero corrette e affidabili. Successivamente, ci siamo concentrati sulla comprensione del comportamento dei visitatori, cercando di capire cosa distingue chi conclude un acquisto da chi invece abbandona il sito.
+
+Nella terza fase, abbiamo esaminato come le diverse variabili si influenzano a vicenda e abbiamo analizzato come l'abitudine degli utenti e le diverse stagioni dell'anno spingano le persone a comprare. È emerso che il valore economico attribuito alle pagine visitate è l'indicatore più importante per prevedere un acquisto, risultando più affidabile del tempo passato sul sito, che spesso può essere ingannevole a causa di pause o errori tecnici. Abbiamo inoltre notato una differenza chiara tra i nuovi utenti, che hanno obiettivi più precisi, e i visitatori abituali, che navigano in modo più esplorativo; questa distinzione è preziosa per creare strategie di vendita e offerte personalizzate.
+
+Nelle ultime fasi, abbiamo utilizzato diversi modelli per confermare queste scoperte, confrontando vari metodi statistici per vedere quali fossero i più efficaci. Durante questo processo, abbiamo dovuto superare ostacoli tecnici, come l'elevato numero di sessioni che non portano ad acquisti e la troppa somiglianza tra le metriche che indicano l'abbandono del sito.
+
+Il confronto finale tra le performance dei modelli, evidenzia un'elevata efficacia predittiva condivisa da tutti gli approcci testati. In particolare, il modello Random Forest emerge come la soluzione con il rendimento superiore, dimostrandosi il più affidabile nel classificare correttamente le sessioni di acquisto. Anche modelli più lineari e computazionalmente meno onerosi, quali la Regressione Logistica e la SVM, hanno fornito risultati eccellenti e molto vicini al vertice. Questa omogeneità nelle prestazioni indica che le feature selezionate durante la fase esplorativa sono estremamente robuste e rappresentative delle dinamiche di conversione, rendendo valido l'intero processo di analisi e preparazione del dato.
+
+In conclusione, questo progetto dimostra che analizzare correttamente le abitudini di navigazione permette di prevedere con buona precisione se un visitatore effettuerà un acquisto. Le competenze e i modelli sviluppati offrono quindi una base concreta per migliorare le strategie di vendita, consentendo alla piattaforma di anticipare le necessità degli utenti e di ottimizzare le conversioni in modo più efficace.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+\end{document}
