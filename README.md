@@ -19,6 +19,7 @@ Il dataset raccoglie informazioni relative alle sessioni di navigazione degli ut
 - informazioni sul visitatore;
 - informazioni temporali (mese, weekend, giornate speciali);
 - caratteristiche tecniche della navigazione (browser, sistema operativo, regione, tipologia di traffico). \
+
 La variabile target è **Revenue**, che indica se la sessione si è conclusa con un acquisto (True) oppure senza conversione (False). \
 **Obiettivo:** l'obiettivo principale consiste nella previsione dell'intenzione di acquisto degli utenti durante una sessione di navigazione. Per arrivare a comprendere ciò, il progetto è stato articolato nelle seguenti fasi:
 
@@ -50,6 +51,7 @@ Le prestazioni dei modelli sono state confrontate attraverso le principali metri
 - Recall
 - F1-score 
 - Confusion Matrix \
+  
 al fine di individuare l'approccio più efficace per la previsione dell'intenzione di acquisto.
 
 ## Istruzioni per l'esecuzione
@@ -58,4 +60,5 @@ Il progetto è stato sviluppato in ambiente Google Colab utilizzando Python. Per
 2. aprire il notebook contenuto nella cartella `notebooks/`;
 3. verificare che il dataset `Online_Shoppers.csv` sia presente nella cartella `data/`;
 4. eseguire il notebook dall'inizio alla fine. \
+   
 Il notebook contiene tutte le fasi del progetto: analisi descrittiva del dataset, analisi esplorativa, preprocessing, addestramento dei modelli e valutazione dei risultati.
